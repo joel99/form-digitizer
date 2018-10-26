@@ -1,0 +1,48 @@
+Form Digitizer
+Users can fill out forms online - social innovation, go paperless!
+Users will upload photo of form and be able to fill it online, and get back a csv of their info.
+
+Assumptions:
+    - No persisted information
+    - Reasonable photo environment (cv will work)
+    - Form flow is left to right, up to down
+Flow: 
+    - User uploads a photo or pdf of a form on the home page
+        - Extension: Allow photo-taking (pretty quick)
+        - Extension: Prettify/align form
+    - Server processes photo and stores form info into db
+        -> id
+        -> form sanitized photo (blob)
+        -> field information (key, field type, field constraints, question string (image?), location of annotation on pdf)
+            -> assume no constraints? maybe max length?
+    - Server returns redirect to /form_id
+        -> Extension: multipage forms
+    - /form_id page
+        -> if form info in state, great, otherwise go get it
+        -> load react form based on form information
+        -> user hits (Complete Form!)
+            -> print and download csv
+                -> #1 extension: request server to generate pdf, (loading state)
+                -> server returns pdf
+            -> clear information, do not redirect (imagine a google form or something)
+        -> want to upload a new photo? Return home
+        -> Extension: overlay the form ontop of pdf
+        -> Extension: preview pdf before downloading (pdf.js)
+Work Items:
+    -> create-react-app
+        - design state at each point
+        - design app architecture
+    -> set up database - refer to Enchanted (MERN stack)
+        - design database
+    -> setup homepage, photo form
+    -> set up server processing of photo (opencv)
+        -> directly interfaces with db
+    -> set up get request for form information (json to react form) into state
+    -> setup frontend for form filling
+    -> setup csv download
+
+    -> setup pdf download
+    -> Test hummus, provide input coordinates, see where it annotates
+
+See:
+    - hummus/hummus-recipe for PDF annotation
