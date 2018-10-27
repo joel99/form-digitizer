@@ -9,6 +9,7 @@ module.exports.index = (req, res, next) => {
 
 // Todo - investigate error throwing
 // Todo make complete (investigate db setup)
+// Todo - single cleansing utility for things you'd want from formview (for both create and get)
 module.exports.process = (req, res, next) => {
   if (!req.file) {
     res.locals.error = {
@@ -28,6 +29,31 @@ module.exports.process = (req, res, next) => {
       res.locals.error = {
         status: 400,
         msg: "Database Form creation error"
+      }
+      return next();
+    } else {
+      res.locals.data = {
+        formData: formView // it's getting brittler...
+      };
+      return next();
+    }
+  });
+}
+
+module.exports.getForm = (req, res, next) => {
+  if (!req.params.id) {
+    res.locals.error = {
+      status: 400,
+      msg: 'Photo id required'
+    };
+    return next();
+  }
+  const { id } = req.params;
+  Form.findById(req.params.id).exec((err, formView) => {
+    if (err) {
+      res.locals.error = {
+        status: 400,
+        msg: "Form not found"
       }
       return next();
     } else {

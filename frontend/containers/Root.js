@@ -8,8 +8,9 @@ import Navigation from './Navigation';
 
 import DevTools from './DevTools';
 import Helmet from 'react-helmet';
+import history  from '../actions/history';
 
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { Router, Route, Switch } from 'react-router-dom';
 
 import { Container, Segment } from 'semantic-ui-react';
 
@@ -23,7 +24,6 @@ export default function Root({ store }) {
 			<Route component={MissingPage} />
 		</Switch>
 	</div>);
-
   return (
     <Provider store={store}>
       <div>
@@ -31,7 +31,7 @@ export default function Root({ store }) {
 				<Navigation />
 				<Container>	
 					<Segment>					
-						<Router>
+						<Router history={history}>
 							{ routes }
 						</Router>
 					</Segment>

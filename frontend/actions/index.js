@@ -2,10 +2,13 @@
 import fetch from 'isomorphic-fetch';
 import * as types from './types';
 import { REQUEST_STATUS } from '../constants'; 
+import history from './history';
 
 // Upload Form Image - called from home, user input image upload
 // TODO: Verify json shape (THIS IS THE BOUNDARY!)
+// TODO: remove hash mark on react router
 const photo_route = "process_photo";
+const get_form_route = "get_form";
 export function uploadFormImage(formInfo) {
     return (dispatch, getState) => {
         dispatch(updateFetchStatus(REQUEST_STATUS.REQUESTING));
@@ -18,8 +21,32 @@ export function uploadFormImage(formInfo) {
         .then(response => response.json())
         .then(json => {
             if (json.formData) {
-                dispatch(updateFetchStatus(REQUEST_STATUS.NOT_REQUESTING));
-                dispatch(loadFormInfo(json.formData));
+                dispatch(updateFetchStatus(REQUEST_STATUS.SUCCESS));
+                const { _id:id, ...formData } = json.formData; 
+                dispatch(loadFormInfo(formData));
+                history.push(`/forms/${id}`)
+            } else {
+                dispatch(updateFetchStatus(REQUEST_STATUS.ERROR));
+            }
+        });
+    }
+}
+
+// todo: write the backend here
+export function getFormImage(formId) {
+    return (dispatch, getState) => {
+        dispatch(updateFetchStatus(REQUEST_STATUS.REQUESTING));
+        fetch(`/api/${get_form_route}/${formId}`, {
+            method: 'POST',
+            body: { id: formId }
+        })
+        .then(response => response.json())
+        .then(json => {
+            if (json.formData) {
+                dispatch(updateFetchStatus(REQUEST_STATUS.SUCCESS));
+                const { _id:id, ...formData } = json.formData; 
+                dispatch(loadFormInfo(formData));
+                history.push(`/forms/${id}`)
             } else {
                 dispatch(updateFetchStatus(REQUEST_STATUS.ERROR));
             }

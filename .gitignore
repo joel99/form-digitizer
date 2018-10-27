@@ -59,10 +59,8 @@ typings/
 .env.frontend
 
 # Public index file
-public/*
+public/
 !public/index.html
-!public/images/*
-!public/**/*.jpg
 # macOS Index File
 .DS_Store
 
