@@ -99,7 +99,7 @@ class Home extends Component {
                     </Header>
                   </label>
                   <Form.Button basic color='black'
-                    type="submit" disabled={requesting}> 
+                    type="submit" disabled={file === null || requesting}> 
                     { STRINGS.confirm }
                   </Form.Button>
                 </Form>

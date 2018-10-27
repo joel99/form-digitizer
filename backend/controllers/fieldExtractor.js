@@ -59,7 +59,7 @@ const parseTesseractPayload = (result, dim) => {
     let horAcc = 0;
     let vertAcc = 0;
     let lengthAcc = 0;
-    const bonusHeightOffset =.3;
+    const bonusHeightOffset =.28;
     reps.forEach(repWord => {
         const { text: repText, bbox: repBBox } = repWord;
         lengthAcc += repText.trim().length;
@@ -77,12 +77,22 @@ const parseTesseractPayload = (result, dim) => {
     const clearCache = (inputType = 'text') => {
         if (wordAccum.length > 0)
             fields.push({
-                label: wordAccum.join(" "),
+                label: wordAccum.join(" ").replace(/^[^A-Z0-9\?\.:]+|[^A-Z0-9\?\.:]+$/ig, ''), // trim nonsense
                 inputType
             });
         wordAccum = [];
     }
+    const clearHeading = () => {
+        if (headingAccum.length > 0)
+            fields.push({
+                label: headingAccum.join(" ").replace(/^[^A-Z0-9\?\.:]+|[^A-Z0-9\?\.:]+$/ig, ''), // trim nonsense
+                inputType: 'heading'
+            });
+        headingAccum = [];
+        viewingHeading = false;
+    }
     console.log(horThresh, vertThresh, headingThresh);
+    let viewingHeading = false; // current attention
     // console.log(rightWall);
     // con thresh debugs
     words.forEach(word => {
@@ -92,17 +102,21 @@ const parseTesseractPayload = (result, dim) => {
         console.log(bbox, text, trueHeight, bbox.y1 - lastBBox.y1, bbox.x0 - lastBBox.x1);
         // override heading check - if baseline is the same, then we're almost definitely continuing trend.
         // should override ->
-        if (trueHeight > headingThresh) {
-            // note as heading...?
-            headingAccum.push();
-            console.log('skip');
+        if (trueHeight + (viewingHeading ? 3 : 0) > headingThresh) {
+            clearCache();
+            if (bbox.y1 - lastBBox.y1 > vertThresh)
+                clearHeading();
+            headingAccum.push(text.trim());
+            viewingHeading = true;
+            lastBBox = bbox;
+            console.log('heading logged'); 
+            // did we start new heading? Verify different line
             return;
-        } else { // did we finish a heading?
-            if (headingAccum.length > 0)
-                fields.push({
-                    label: headingAccum.join(''),
-                    inputType: 'heading'
-                });
+        } else if (headingAccum.length > 0) { // did we finish a heading?
+            clearHeading();
+            lastBBox = bbox;
+            wordAccum.push(text.trim());
+            return;
         }
         if (bbox.y1 - lastBBox.y1 > vertThresh) { // logic for "whether two words are continuous" - distance check
             // we have a new line - was the last line complete?
@@ -111,11 +125,14 @@ const parseTesseractPayload = (result, dim) => {
                 const lineGap = bbox.y1 - lastBBox.y1;
                 if (lineGap > 3 * vertThresh) { // this gap is huge - info paragraph (extension: detect line)
                     clearCache('info');
+                    console.log('info paragraph');
                 } else if (lineGap > 2 * vertThresh) { // gap under line - it's a form
                     clearCache();
+                    console.log('vert input');
                 } // else no gap, continued label
             } else { // gap at end of line
                 clearCache();
+                console.log('eol input');
             }
         } else { // same line. check gap.
             if (lastBBox.x1 + horThresh < bbox.x0) { // horizontal gap
@@ -126,11 +143,7 @@ const parseTesseractPayload = (result, dim) => {
         lastBBox = bbox;
         wordAccum.push(text.trim());
     });
-    if (headingAccum.length > 0)
-        fields.push({
-            label: headingAccum.join(''),
-            inputType: 'heading'
-        });
+    clearHeading();
     clearCache();
     return fields; 
 };

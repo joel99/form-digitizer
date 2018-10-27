@@ -9,10 +9,14 @@ import { Button, Container, Form, Header, Icon, Input, Segment } from 'semantic-
 
 const InfoBlock = ( { clearValues, data, onChange, onSubmit, values } ) => {
   const { fields } = data;
-  const fieldBlock = fields.map(({label, _id}) => {
+  const fieldBlock = fields.map(({inputType, label, _id}) => {
     const updateVal = (e) => {
       onChange(_id, e.target.value);
     };
+    if (inputType === 'info' || inputType === 'heading') {
+      return (<h3>{label}</h3>);
+    }
+
     return (<Form.Field key={_id}>
       <label>{label}</label>
       <Input
@@ -88,7 +92,9 @@ class FormView extends Component {
             clearValues={this.clearValues}
           />);
         default:
-          return "Errored";
+          return (<div>
+            Sorry, we couldn't find this form. Try making a new one!
+          </div>);
       }
     })();
     return (
