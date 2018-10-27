@@ -12,7 +12,7 @@ function rootReducer(state = initState, action) {
     case types.UPDATE_FORM_FETCH:
       return { ...state, formFetchStatus: action.status };
     case types.LOAD_FORM_INFO:
-      return { ...state, formData: action.formData }; // unimplemented
+      return { ...state, formData: action.formData };
     default:
       return state;
   }

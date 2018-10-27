@@ -11,7 +11,8 @@ import { bindActionCreators } from 'redux';
 // TODO: augment form submission with more info - form title, form description, etc
 import { uploadFormImage } from '../actions/';
 // import { Button, Form, FileUpload } from 'elemental';
-import { Button, Input, Form } from 'semantic-ui-react';
+import { COLORS, REQUEST_STATUS, STRINGS } from '../constants';
+import { Button, Container, Divider, Form, Grid, Header, Icon, Segment } from 'semantic-ui-react'
 
 class Home extends Component {
   constructor(props){
@@ -44,30 +45,78 @@ class Home extends Component {
     //     </FileUpload>
     const { requestStatus } = this.props;
     const { file } = this.state;
-    const label = file ?
+    let label = file ?
 		  (file.name.length > 14 ?
-		   file.name.substr(0, 4) + "..." + file.name.substr(-7) : file.name) : "Upload Form";
-    
+       file.name.substr(0, 4) + "..." + file.name.substr(-7) : file.name) : STRINGS.select;
+    const requesting = requestStatus === REQUEST_STATUS.REQUESTING;
+    if (requesting) {
+      label = STRINGS.requesting;
+    }
+    const uploadIcon = (() => {
+      switch (requestStatus) {
+        case REQUEST_STATUS.ERROR:
+          return 'exclamation circle';
+        case REQUEST_STATUS.REQUESTING:
+          return 'sun';
+        case REQUEST_STATUS.SUCCESS:
+          return 'check';
+        case REQUEST_STATUS.NOT_REQUESTING:
+        default:
+          return 'arrow circle up';
+      }
+    })();
     return (
-      <Form onSubmit={e => this.onFormSubmit(e)}>
-	      <input style={ styles.fileStyle }
-		     name="file" id="file"
-		     type="file" onChange={this.onChange}
-		     accept="image/*"
-	      />
-	      <label htmlFor="file" style={styles.labelStyle}>
-          { label }
-	      </label>
-        <Form.Button
-          type="submit"> 
-          Confirm Form
-	      </Form.Button>
-      </Form>
+      <Container style={styles.wrap}>
+        <Segment style={styles.customSegment}>
+          <Grid columns={2} stackable textAlign='center'>
+            <Divider vertical hidden />
+            <Grid.Row verticalAlign='middle'>
+              <Grid.Column>
+                <Grid.Row>
+                  <Header as='h1'>
+                    <Icon name='paper plane outline' />
+                    <Header.Content>
+                      PopForm
+                    </Header.Content>
+                  </Header>
+                </Grid.Row>
+                <Grid.Row>
+                  Go paperless! Photos to forms, easier than ever.
+                </Grid.Row>
+              </Grid.Column>
+
+              <Grid.Column>
+                <Form onSubmit={e => this.onFormSubmit(e)}>
+                  <input style={ styles.fileStyle }
+                    name="file" id="file"
+                    type="file" onChange={this.onChange}
+                    accept="image/*"
+                  />
+                  <label htmlFor="file" style={styles.labelStyle}>
+                    <Header icon>
+                      <Icon name={uploadIcon} loading={requesting} style={styles.statusIcon}/>
+                      { label }
+                    </Header>
+                  </label>
+                  <Form.Button basic color='black'
+                    type="submit" disabled={requesting}> 
+                    { STRINGS.confirm }
+                  </Form.Button>
+                </Form>
+              </Grid.Column>
+            </Grid.Row>
+          </Grid>
+        </Segment>
+      </Container>
     )
   }
 };
 
 const styles = {
+  customSegment: {
+    fontSize: '18px',
+    padding: '3em'
+  },
   fileStyle: {
     width: "0.1px",
     height: "0.1px",
@@ -84,13 +133,20 @@ const styles = {
     fontWeight: "700",
     padding: "1em",
     margin: "1em",
-    display: "inline-block"
+    display: "inline-block",
+    width: "12em"
   },
+  statusIcon: {
+    margin: '14px'
+  },
+  wrap: {
+    margin: '6em'
+  }
 }
 
 const mapStateToProps = state => {
   return {
-    requestStatus: state.requestStatus,
+    requestStatus: state.formFetchStatus,
   };
 };
 

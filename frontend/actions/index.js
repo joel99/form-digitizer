@@ -21,9 +21,9 @@ export function uploadFormImage(formInfo) {
         .then(response => response.json())
         .then(json => {
             if (json.formData) {
-                dispatch(updateFetchStatus(REQUEST_STATUS.SUCCESS));
                 const { _id:id, ...formData } = json.formData; 
                 dispatch(loadFormInfo(formData));
+                dispatch(updateFetchStatus(REQUEST_STATUS.SUCCESS));
                 history.push(`/forms/${id}`)
             } else {
                 dispatch(updateFetchStatus(REQUEST_STATUS.ERROR));
@@ -32,7 +32,6 @@ export function uploadFormImage(formInfo) {
     }
 }
 
-// todo: write the backend here
 export function getFormImage(formId) {
     return (dispatch, getState) => {
         dispatch(updateFetchStatus(REQUEST_STATUS.REQUESTING));
@@ -42,11 +41,12 @@ export function getFormImage(formId) {
         })
         .then(response => response.json())
         .then(json => {
+            console.log("ello");
+            console.log(json.formData);
             if (json.formData) {
-                dispatch(updateFetchStatus(REQUEST_STATUS.SUCCESS));
                 const { _id:id, ...formData } = json.formData; 
                 dispatch(loadFormInfo(formData));
-                history.push(`/forms/${id}`)
+                dispatch(updateFetchStatus(REQUEST_STATUS.SUCCESS));
             } else {
                 dispatch(updateFetchStatus(REQUEST_STATUS.ERROR));
             }

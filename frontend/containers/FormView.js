@@ -5,9 +5,19 @@ import { bindActionCreators } from 'redux';
 import { REQUEST_STATUS } from '../constants';
 
 import { getFormImage } from '../actions/';
+import { Button, Container, Divider, Form, Grid, Header, Icon, Input, Segment } from 'semantic-ui-react'
 
-const InfoBlock = ({ formInfo }) => {
-  return (<div>Stubbed</div>);
+const InfoBlock = ( { data } ) => {
+  const { fields } = data;
+  const fieldBlock = fields.map(({label, _id}) => {
+    return (<Form.Field key={_id}>
+      <label>{label}</label>
+      <Input type='text' />
+    </Form.Field>);
+  });
+  return (<div>
+    {fieldBlock}
+  </div>);
 };
 
 class FormView extends Component {
@@ -24,26 +34,43 @@ class FormView extends Component {
 
   render() {
     const { formData, formFetchStatus } = this.props;
-    console.log(formData);
     const formBlock = (() => {
       switch (formFetchStatus) {
         case REQUEST_STATUS.REQUESTING:
-          return "Requesting";
+        return (<Container>
+            <Header icon style={styles.statusIcon}>
+              <Icon name='sun' loading />
+              Fetching your Form...
+            </Header>
+          </Container>);
         case REQUEST_STATUS.SUCCESS:
-          return <InfoBlock />;
+          return <InfoBlock data={formData} />;
         default:
           return "Errored";
       }
     })();
     return (
-      <div>
-        {formBlock}
-      </div>
-    )
+      <Container style={styles.wrap}>
+        <Segment style={styles.customSegment}>
+          { formBlock }
+        </Segment>
+      </Container>
+    );
   }
 };
 
 const styles = {
+  customSegment: {
+    fontSize: '18px',
+    padding: '3em'
+  },
+  statusIcon: {
+    display: 'block',
+    margin: 'auto'
+  },
+  wrap: {
+    margin: '6em'
+  }
 }
 
 const mapStateToProps = state => {
