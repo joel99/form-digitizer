@@ -11,23 +11,32 @@ import Helmet from 'react-helmet';
 
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 
+import { Container, Segment } from 'semantic-ui-react';
+
+// TODO: add style, theming
 export default function Root({ store }) {  
+	const routes = (<div>
+		<Switch>
+			<Route exact path="/" component={Home} />
+			<Route path="/forms/:id" component={FormView} />
+			<Route path="/error" component={MissingPage} />
+			<Route component={MissingPage} />
+		</Switch>
+	</div>);
+
   return (
     <Provider store={store}>
       <div>
-	<Helmet />
-	<Router>
-	  <div>
-	    <Navigation />
-	    <Switch>
-	      <Route exact path="/" component={Home} />
-	      <Route path="/forms/:id" component={FormView} />
-	      <Route path="/error" component={MissingPage} />
-	      <Route component={MissingPage} />
-	    </Switch>
-	  </div>
-	</Router>
-	<DevTools/>
+				<Helmet />
+				<Navigation />
+				<Container>	
+					<Segment>					
+						<Router>
+							{ routes }
+						</Router>
+					</Segment>
+				</Container>
+				<DevTools/>
       </div>
     </Provider>
   );

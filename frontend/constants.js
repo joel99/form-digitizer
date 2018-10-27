@@ -6,4 +6,12 @@ const COLORS = {
 const STRINGS = {
 };
 
-export { COLORS, STRINGS };
+// Request Enums
+const REQUEST_STATUS = {
+    ERROR: "error",
+    NOT_REQUESTING: "not_requesting",
+    REQUESTING: "requesting",
+    SUCCESS: "success"
+};
+
+export { COLORS, REQUEST_STATUS, STRINGS };

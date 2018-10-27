@@ -10,16 +10,19 @@ const formStorage = multer.diskStorage({
   destination: function(req, file, cb) {
     cb(null, './public/uploaded/');
   },
+  // renaming is done here
   filename: function(req, file, cb) {
-    let names = file.mimetype.split('/');
-    cb(null, req.params.id + '.' + names[names.length - 1]);
+    const parts = file.mimetype.split('/');
+    const ext = parts[parts.length - 1];
+    // todo filtering here or above idk
+    cb(null, `random.${ext}`);
   }
 });
 
 const formImageUpload = multer({storage: formStorage});
 
-router.get('/process_photo', controllers.forms.process);
-router.get('/create_submission', controllers.forms.create);
+router.post('/process_photo', formImageUpload.single('form_image'), controllers.forms.process);
+router.post('/create_submission', controllers.forms.create);
 
 // Package and finish
 router.use((req, res, next) => {

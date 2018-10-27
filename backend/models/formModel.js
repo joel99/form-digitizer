@@ -1,5 +1,20 @@
 const mongoose = require('mongoose');
 
+const fieldSchema = new mongoose.Schema({
+  label: {
+    type: String,
+    required: true,
+  },
+  inputType: {
+    type: String,
+    default: "text"
+  },
+  constraint: {
+    type: String,
+    required: false // ready for brittle code?
+  }
+});
+
 const formSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -8,11 +23,15 @@ const formSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: true
-  },
-  image: {
-    type: String,
     required: false
+  },
+  fields: {
+    type: [fieldSchema],
+    required: true 
+  },
+  src: {
+    type: String,
+    required: true
   }
 }, { usePushEach: true });
 

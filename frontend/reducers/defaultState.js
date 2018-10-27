@@ -1,5 +1,6 @@
+import { REQUEST_STATUS } from '../constants';
+
 module.exports = {
-	applicationName: 'Form Digitizer',
-	isFetchingForm: false,
-	formFetchStatus: 0
+	applicationName: 'PopForm',
+	formFetchStatus: REQUEST_STATUS.NOT_REQUESTING
 };
