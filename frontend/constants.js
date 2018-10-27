@@ -1,13 +1,15 @@
 // Frontend constants
 
 const COLORS = {
-    background: '#97c2af',
+    background: '#0E273C',
     contrast: '#FFFFFF',
     primary: '#131516'
 };
 
 const STRINGS = {
-    confirm: 'Confirm Submission',
+    clear: 'Clear your Submission',
+    complete: 'Complete your Submission',
+    confirm: 'Generate Form',
     main: 'Welcome to PopForm',
     select: 'Add a Photo',
     requesting: 'Hang On!',

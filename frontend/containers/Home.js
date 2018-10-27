@@ -67,7 +67,7 @@ class Home extends Component {
     })();
     return (
       <Container style={styles.wrap}>
-        <Segment style={styles.customSegment}>
+        <Segment color='teal' style={styles.customSegment}>
           <Grid columns={2} stackable textAlign='center'>
             <Divider vertical hidden />
             <Grid.Row verticalAlign='middle'>

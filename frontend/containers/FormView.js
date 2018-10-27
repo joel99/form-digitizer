@@ -2,27 +2,40 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { withRouter, Link } from 'react-router-dom';
 import { bindActionCreators } from 'redux';
-import { REQUEST_STATUS } from '../constants';
+import { REQUEST_STATUS, STRINGS } from '../constants';
 
-import { getFormImage } from '../actions/';
-import { Button, Container, Divider, Form, Grid, Header, Icon, Input, Segment } from 'semantic-ui-react'
+import { completeSubmission, getFormImage } from '../actions/';
+import { Button, Container, Form, Header, Icon, Input, Segment } from 'semantic-ui-react'
 
-const InfoBlock = ( { data } ) => {
+const InfoBlock = ( { clearValues, data, onChange, onSubmit, values } ) => {
   const { fields } = data;
   const fieldBlock = fields.map(({label, _id}) => {
+    const updateVal = (e) => {
+      onChange(_id, e.target.value);
+    };
     return (<Form.Field key={_id}>
       <label>{label}</label>
-      <Input type='text' />
+      <Input
+        type='text' 
+        placeholder='Answer' 
+        value={values[_id] ? values[_id] : ""}
+        onChange={updateVal} 
+        />
     </Form.Field>);
   });
-  return (<div>
+  return (<Form onSubmit={onSubmit}>
     {fieldBlock}
-  </div>);
+    <Button basic color='black' type='submit'>{STRINGS.complete}</Button>
+    <Button basic color='red' onClick={clearValues}>{STRINGS.clear}</Button>
+  </Form>);
 };
 
 class FormView extends Component {
   constructor(props){
     super(props);
+    this.state = {
+      formValues: {}
+    };
   }
 
   componentDidMount() {
@@ -32,8 +45,31 @@ class FormView extends Component {
     }
   }
 
+  onFormSubmit = (e) => {
+    e.preventDefault();
+    const { formValues } = this.state;
+    const { completeSubmission, match } = this.props;
+    completeSubmission({
+      id: match.params.id,
+      formValues
+    });
+    // TODO: wipe form
+  }
+          
+  // children get considerable power here, wow
+  updateFormValues = (key, newVal) => {
+    const { formValues } = this.state;
+    const newVals = { ...formValues, [key]: newVal };
+    this.setState({ formValues: newVals });
+  };
+
+  clearValues = () => {
+    this.setState({formValues: {}});
+  };
+
   render() {
     const { formData, formFetchStatus } = this.props;
+    const { formValues } = this.state;
     const formBlock = (() => {
       switch (formFetchStatus) {
         case REQUEST_STATUS.REQUESTING:
@@ -44,14 +80,26 @@ class FormView extends Component {
             </Header>
           </Container>);
         case REQUEST_STATUS.SUCCESS:
-          return <InfoBlock data={formData} />;
+          return (<InfoBlock 
+            data={formData}
+            onChange={this.updateFormValues}
+            values={formValues}  
+            onSubmit={e => this.onFormSubmit(e)}
+            clearValues={this.clearValues}
+          />);
         default:
           return "Errored";
       }
     })();
     return (
       <Container style={styles.wrap}>
-        <Segment style={styles.customSegment}>
+        <Segment color="green" style={styles.customSegment}>
+          Fill out your Form!
+          <div style={styles.backDiv}>
+            <Link to="/"><Button basic color="black"> Create Another! </Button></Link>
+          </div>
+        </Segment>
+        <Segment color="teal" style={styles.customSegment}>
           { formBlock }
         </Segment>
       </Container>
@@ -60,6 +108,9 @@ class FormView extends Component {
 };
 
 const styles = {
+  backDiv: {
+    float: 'right'
+  },
   customSegment: {
     fontSize: '18px',
     padding: '3em'
@@ -82,7 +133,8 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return bindActionCreators({
-      getFormImage
+      getFormImage,
+      completeSubmission
   }, dispatch);
 };
 

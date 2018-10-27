@@ -9,6 +9,8 @@ import history from './history';
 // TODO: remove hash mark on react router
 const photo_route = "process_photo";
 const get_form_route = "get_form";
+const complete_form_route = "create_submission";
+
 export function uploadFormImage(formInfo) {
     return (dispatch, getState) => {
         dispatch(updateFetchStatus(REQUEST_STATUS.REQUESTING));
@@ -36,13 +38,10 @@ export function getFormImage(formId) {
     return (dispatch, getState) => {
         dispatch(updateFetchStatus(REQUEST_STATUS.REQUESTING));
         fetch(`/api/${get_form_route}/${formId}`, {
-            method: 'POST',
-            body: { id: formId }
+            method: 'POST'
         })
         .then(response => response.json())
         .then(json => {
-            console.log("ello");
-            console.log(json.formData);
             if (json.formData) {
                 const { _id:id, ...formData } = json.formData; 
                 dispatch(loadFormInfo(formData));
@@ -53,6 +52,20 @@ export function getFormImage(formId) {
         });
     }
 }
+
+export const completeSubmission = (submitInfo) => {
+    const { id, formValues } = submitInfo;
+    return (dispatch) => {
+        // todo: loading state
+        fetch(`/api/${complete_form_route}/${id}`, {
+            method: 'POST',
+            body: { formValues }
+        })
+        .then(() => {
+            console.log("Imagine actually finishing this project")
+        });
+    };
+} 
 
 // Helpers
 // startFetching - submitted to server, or fresh load of form view page
