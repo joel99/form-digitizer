@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Provider } from 'react-redux';
-import Home from './Home.js';
-import MissingPage from './MissingPage.js';
-
+import Home from './Home';
+import FormView from './FormView';
+import MissingPage from './MissingPage';
 import Navigation from './Navigation';
 
 import DevTools from './DevTools';
@@ -15,7 +15,7 @@ export default function Root({ store }) {
   return (
     <Provider store={store}>
       <div>
-	<Helmet bodyAttributes={styles.helmetStyle} />
+	<Helmet />
 	<Router>
 	  <div>
 	    <Navigation />

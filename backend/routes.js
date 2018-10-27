@@ -3,6 +3,7 @@
 const express = require('express');
 const router = express.Router();
 const controllers = require('./controllers/');
+
 const multer = require('multer');
 
 const formStorage = multer.diskStorage({
@@ -18,7 +19,7 @@ const formStorage = multer.diskStorage({
 const formImageUpload = multer({storage: formStorage});
 
 router.get('/process_photo', controllers.forms.process);
-router.get('/create_submission', controller.forms.create);
+router.get('/create_submission', controllers.forms.create);
 
 // Package and finish
 router.use((req, res, next) => {
