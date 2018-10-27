@@ -5,7 +5,7 @@ const fieldSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  inputType: {
+  inputType: { // could also be 'info' if it's a paragraph/non-input
     type: String,
     default: "text"
   },

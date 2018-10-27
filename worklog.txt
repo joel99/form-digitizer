@@ -6,8 +6,16 @@ Assumptions:
     - No persisted information
     - Reasonable photo environment (cv will work)
     - Form flow is left to right, up to down
+        - Algo: Given line bounding box, check inside for underlines. We scan for all occurrences of underline
+            - # of distinct underlines is number of distinct entries **
+            - search left of underline for entry
+            - scan paragraphs for blocks of explanatory text TODO, incorporate into form model TODO (field with type 'paragraph', no attr)
+    - Form has underline or newline where entries are expected ****
+        - underline location is right to the right or right below entry
+    - Form Questions don't bleed onto multiple lines ****
+    - TODO: verify symbols section
 Flow: 
-    - User uploads a photo or pdf of a form on the home page
+    - User uploads a photo or pdf of a form on the home page MVP CHECK
         - Extension: Allow photo-taking (pretty quick)
         - Extension: Prettify/align form
     - Server processes photo and stores form info into db
@@ -46,3 +54,18 @@ Work Items:
 
 See:
     - hummus/hummus-recipe for PDF annotation
+
+Cases:
+    - Space / Underline denotes entry to fill
+    - entry goes onto new line (don't worry)
+    - paragraph of text -> detect intent
+    - form entry is on next line (?) - taken care of by assumption
+- work item: detect expected width on page (take percentage of total page/image width?)
+    - use paragraph -> scan words and look for blanks/gaps. 
+        - No gaps? New pp -> not part of question (just text)
+
+        - case: simple line -> should detect excessive break
+        - fill in the blank -> works
+        - paragraph text -> works
+
+        - underline and actual fill in the blank line

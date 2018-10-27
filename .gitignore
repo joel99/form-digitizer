@@ -65,3 +65,5 @@ public/
 .DS_Store
 
 dump.rdb
+eng.traineddata
+.vscode/

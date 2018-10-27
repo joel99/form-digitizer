@@ -3,8 +3,9 @@
 const express = require('express');
 const router = express.Router();
 const controllers = require('./controllers/');
-
+const uuidv1 = require('uuid/v1');
 const multer = require('multer');
+const Tesseract = require('tesseract.js');
 
 const formStorage = multer.diskStorage({
   destination: function(req, file, cb) {
@@ -15,7 +16,7 @@ const formStorage = multer.diskStorage({
     const parts = file.mimetype.split('/');
     const ext = parts[parts.length - 1];
     // todo filtering here or above idk
-    cb(null, `random.${ext}`);
+    cb(null, `${uuidv1()}.${ext}`);
   }
 });
 
@@ -39,7 +40,7 @@ router.use((req, res, next) => {
     });
     return res.status(statusCode).json(response);
   } else {
-    console.log('generic server error');
+    console.log('Unexpected server state');
     return res.status(500).json({
       'status': 'error',
       'code': 500,
@@ -60,7 +61,8 @@ router.use((err, req, res, next) => {
     console.log(response);
     return res.status(statusCode).json(response);
   } else {
-    console.log('generic server error');
+    console.log('Unexpected server error thrown');
+    console.log(err);
     return res.status(500).json({
       'status': 'error',
       'code': 500,

@@ -9,9 +9,143 @@
  *  'id': hmm.
  * }
  */
-const extractInfo = (fileObj) => {
-    console.log("laser vision");
-    return [{label: "q1"}]; // mocked
+// Extension: fill in the blank (have placeholder in text attr) -> right now assumes end.
+// No sense of margins - const rightWall
+const path = require('path');
+const Tesseract = require('tesseract.js');
+const sizeOf = require('image-size');
+
+const CONFIDENCE_MIN_THRESHOLD = 75;
+const tesseract = Tesseract.create();
+const CHAR_SPACE_THRESHOLD = 5; // 5 characters worth of space accoutn for a blank // (naive hack) 
+const NEW_LINE_CHAR_THRESH = 1.5; // vert space in terms of char
+const HEADING_THRESH = 1.2;
+
+const extractInfo = async (srcFn) => {
+    const src = `../../public/uploaded/${srcFn}`;
+    const filePath = path.join(__dirname, src);
+    const dimensions = sizeOf(filePath);
+    const output = new Promise((resolve) => {
+        tesseract.recognize(filePath, 'eng')
+        .then(result => {
+            try {
+                resolve(parseTesseractPayload(result, dimensions));
+            } catch (err) {
+                console.log(`Could not parse form! ${err}`);
+                resolve({"error": "Parse Failure"});
+            }
+        })
+        .catch(error => {
+            console.log("Tesseract error")
+        });
+    });
+    return await output;
+};
+
+const parseTesseractPayload = (result, dim) => {
+    const { text, confidence, blocks, paragraphs, lines, words } = result;
+    
+    if (confidence < CONFIDENCE_MIN_THRESHOLD) {
+        throw new Error("Failed confidence test");
+    }
+    const rightWall = dim.width * .83; // assume .125 margin (8.5 x 11) and some human comfort -> extend by detecting vertical lines
+    let fields = []; 
+    let wordAccum = []; // keep appending words until trigger condition
+    let headingAccum = [];
+    const cornerBBox = {x0: 0, x1: 0, y0: 0, y1: 0};
+    let lastBBox = cornerBBox;
+    const midSlice = Math.floor(words.length / 2);
+    const reps = words.slice(midSlice, midSlice + 4);
+    let horAcc = 0;
+    let vertAcc = 0;
+    let lengthAcc = 0;
+    const bonusHeightOffset =.3;
+    reps.forEach(repWord => {
+        const { text: repText, bbox: repBBox } = repWord;
+        lengthAcc += repText.trim().length;
+        horAcc += repBBox.x1 - repBBox.x0;
+        vertAcc += (repBBox.y1 - repBBox.y0) * (1 + bonusHeightOffset * heightBonus(repText));
+    });
+    const fontSize = Math.round( horAcc / lengthAcc );
+    const fontHeight = Math.round( vertAcc / reps.length );
+    // TODO: sanitation, consistent line heights, etc. TODO: ransac.
+    const horThresh = fontSize * CHAR_SPACE_THRESHOLD;
+    const vertThresh = fontHeight * NEW_LINE_CHAR_THRESH; // small font kindness
+    const headingThresh = fontHeight * HEADING_THRESH + 3;
+    // TODO: add incredible bonus for having adjacent line. 
+    // Naive heading detection with font size
+    const clearCache = (inputType = 'text') => {
+        if (wordAccum.length > 0)
+            fields.push({
+                label: wordAccum.join(" "),
+                inputType
+            });
+        wordAccum = [];
+    }
+    console.log(horThresh, vertThresh, headingThresh);
+    // console.log(rightWall);
+    // con thresh debugs
+    words.forEach(word => {
+        const { bbox, text } = word;
+        // Abnormal font check check
+        const trueHeight = Math.round((bbox.y1 - bbox.y0) / (1 + bonusHeightOffset * heightBonus(text)));
+        console.log(bbox, text, trueHeight, bbox.y1 - lastBBox.y1, bbox.x0 - lastBBox.x1);
+        // override heading check - if baseline is the same, then we're almost definitely continuing trend.
+        // should override ->
+        if (trueHeight > headingThresh) {
+            // note as heading...?
+            headingAccum.push();
+            console.log('skip');
+            return;
+        } else { // did we finish a heading?
+            if (headingAccum.length > 0)
+                fields.push({
+                    label: headingAccum.join(''),
+                    inputType: 'heading'
+                });
+        }
+        if (bbox.y1 - lastBBox.y1 > vertThresh) { // logic for "whether two words are continuous" - distance check
+            // we have a new line - was the last line complete?
+            if (lastBBox.x1 + horThresh > rightWall) {
+                // complete line - is there an empty line now?
+                const lineGap = bbox.y1 - lastBBox.y1;
+                if (lineGap > 3 * vertThresh) { // this gap is huge - info paragraph (extension: detect line)
+                    clearCache('info');
+                } else if (lineGap > 2 * vertThresh) { // gap under line - it's a form
+                    clearCache();
+                } // else no gap, continued label
+            } else { // gap at end of line
+                clearCache();
+            }
+        } else { // same line. check gap.
+            if (lastBBox.x1 + horThresh < bbox.x0) { // horizontal gap
+                clearCache();
+                console.log('horizontal gap');
+            }
+        }
+        lastBBox = bbox;
+        wordAccum.push(text.trim());
+    });
+    if (headingAccum.length > 0)
+        fields.push({
+            label: headingAccum.join(''),
+            inputType: 'heading'
+        });
+    clearCache();
+    return fields; 
+};
+
+// util
+const low = 'qypgj';
+const high = 'tidfhjklb';
+// expensive! but that's ok
+const isTall = s => s.split('').some(c => high.includes(c) || c === c.toUpperCase());
+const isLow = s => s.split('').some(c => low.includes(c));
+const heightBonus = s => {
+    let bonus = -1; 
+    if (isTall(s)) bonus += 1;
+    if (isLow(s)) bonus += 1;
+    return bonus;
 };
 
 module.exports.extractInfo = extractInfo;
