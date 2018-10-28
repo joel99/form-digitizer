@@ -12,6 +12,14 @@ const fieldSchema = new mongoose.Schema({
   constraint: {
     type: String,
     required: false // ready for brittle code?
+  },
+  x: {
+    type: Number,
+    required: false,
+  },
+  y: {
+    type: Number,
+    required: false
   }
 });
 

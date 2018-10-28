@@ -3,6 +3,7 @@ import fetch from 'isomorphic-fetch';
 import * as types from './types';
 import { REQUEST_STATUS } from '../constants'; 
 import history from './history';
+import { saveAs } from 'file-saver';
 
 // Upload Form Image - called from home, user input image upload
 // TODO: Verify json shape (THIS IS THE BOUNDARY!)
@@ -59,11 +60,11 @@ export const completeSubmission = (submitInfo) => {
         // todo: loading state
         fetch(`/api/${complete_form_route}/${id}`, {
             method: 'POST',
-            body: { formValues }
+            body: { formValues },
+            responseType: 'blob'
         })
-        .then(() => {
-            console.log("Imagine actually finishing this project")
-        });
+        .then((response) => response.blob())
+        .then(blob => saveAs(blob, 'submission.pdf'));
     };
 } 
 

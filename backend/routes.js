@@ -24,7 +24,7 @@ const formImageUpload = multer({storage: formStorage});
 
 router.post('/process_photo', formImageUpload.single('form_image'), controllers.forms.process);
 router.post('/get_form/:id', controllers.forms.getForm);
-router.post('/create_submission', controllers.forms.create);
+router.post('/create_submission/:id', controllers.forms.create);
 
 // Package and finish
 router.use((req, res, next) => {

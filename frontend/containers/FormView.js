@@ -14,7 +14,7 @@ const InfoBlock = ( { clearValues, data, onChange, onSubmit, values } ) => {
       onChange(_id, e.target.value);
     };
     if (inputType === 'info' || inputType === 'heading') {
-      return (<h3>{label}</h3>);
+      return (<h3 key={_id}>{label}</h3>);
     }
 
     return (<Form.Field key={_id}>

@@ -52,6 +52,8 @@ const parseTesseractPayload = (result, dim) => {
     let fields = []; 
     let wordAccum = []; // keep appending words until trigger condition
     let headingAccum = [];
+    let startx = 0;
+    let starty = 0; // top left origin
     const cornerBBox = {x0: 0, x1: 0, y0: 0, y1: 0};
     let lastBBox = cornerBBox;
     const midSlice = Math.floor(words.length / 2);
@@ -78,7 +80,9 @@ const parseTesseractPayload = (result, dim) => {
         if (wordAccum.length > 0)
             fields.push({
                 label: wordAccum.join(" ").replace(/^[^A-Z0-9\?\.:]+|[^A-Z0-9\?\.:]+$/ig, ''), // trim nonsense
-                inputType
+                inputType,
+                x: startx,
+                y: starty
             });
         wordAccum = [];
     }
@@ -90,11 +94,14 @@ const parseTesseractPayload = (result, dim) => {
             });
         headingAccum = [];
         viewingHeading = false;
-    }
+    };
+    const logNewStart = (bbox) => {
+        startx = bbox.x0;
+        starty = bbox.y0; // heads up: TODO KIMBERLY - need to find where the fields actually are
+    };
     console.log(horThresh, vertThresh, headingThresh);
     let viewingHeading = false; // current attention
     // console.log(rightWall);
-    // con thresh debugs
     words.forEach(word => {
         const { bbox, text } = word;
         // Abnormal font check check
@@ -106,6 +113,7 @@ const parseTesseractPayload = (result, dim) => {
             clearCache();
             if (bbox.y1 - lastBBox.y1 > vertThresh)
                 clearHeading();
+            if (headingAccum.length == 0) logNewStart(bbox);
             headingAccum.push(text.trim());
             viewingHeading = true;
             lastBBox = bbox;
@@ -114,10 +122,12 @@ const parseTesseractPayload = (result, dim) => {
             return;
         } else if (headingAccum.length > 0) { // did we finish a heading?
             clearHeading();
+            logNewStart(bbox);
             lastBBox = bbox;
             wordAccum.push(text.trim());
             return;
         }
+        let didRestart = true;
         if (bbox.y1 - lastBBox.y1 > vertThresh) { // logic for "whether two words are continuous" - distance check
             // we have a new line - was the last line complete?
             if (lastBBox.x1 + horThresh > rightWall) {
@@ -138,8 +148,12 @@ const parseTesseractPayload = (result, dim) => {
             if (lastBBox.x1 + horThresh < bbox.x0) { // horizontal gap
                 clearCache();
                 console.log('horizontal gap');
+            } else {
+                didRestart = false;
             }
         }
+        if (didRestart)
+            logNewStart(bbox);
         lastBBox = bbox;
         wordAccum.push(text.trim());
     });
